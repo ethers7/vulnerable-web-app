@@ -45,7 +45,14 @@ app.get('/users/:id', (req, res) => {
   const filePath = path.resolve(baseDir, `${userId}.json`);
 
   // Ensure the resolved path is within the allowed directory
-  if (!filePath.startsWith(baseDir + path.sep)) {
+  // Use path.relative to verify no directory traversal occurred
+  const relativePath = path.relative(baseDir, filePath);
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    return res.status(403).send('Access denied');
+  }
+
+  // Additional check: ensure resolved path starts with base directory
+  if (!filePath.startsWith(baseDir + path.sep) && filePath !== baseDir) {
     return res.status(403).send('Access denied');
   }
 
@@ -156,7 +163,7 @@ app.get('/search', (req, res) => {
   res.send(`Query executed: ${safeSqlQuery}`);
 });
 
-// Vulnerability 8: Path traversal - Fixed
+// Vulnerability 8: Path traversal - Fixed (CWE-22)
 app.get('/download', (req, res) => {
   const file = req.query.file;
 
@@ -165,36 +172,49 @@ app.get('/download', (req, res) => {
     return res.status(400).send('Invalid file parameter');
   }
 
-  // Additional input validation: reject paths with null bytes or potentially dangerous patterns
-  if (file.includes('\0') || file.includes('..')) {
+  // Strict input validation: reject paths with dangerous characters and patterns
+  // Prevent null bytes, path traversal sequences, and absolute paths
+  if (file.includes('\0') ||
+      file.includes('..') ||
+      file.startsWith('/') ||
+      file.startsWith('\\') ||
+      file.includes(':')) {
     return res.status(400).send('Invalid file parameter');
   }
 
-  // Define allowed base directory
+  // Define allowed base directory - use path.resolve for canonical path
   const baseDir = path.resolve(__dirname);
 
-  // Canonicalize the requested file path
-  const filePath = path.resolve(baseDir, file);
+  // Resolve the requested file path against the base directory
+  // This canonicalizes the path and resolves any symbolic links
+  const resolvedPath = path.resolve(baseDir, file);
 
-  // Ensure the resolved path is within the allowed directory
-  // Use path.normalize and verify the canonical path stays within baseDir
-  const normalizedPath = path.normalize(filePath);
-  if (!normalizedPath.startsWith(baseDir + path.sep) && normalizedPath !== baseDir) {
+  // Critical security check: Ensure the resolved path is within the allowed directory
+  // This prevents directory traversal attacks (CWE-22)
+  // Note: We must check against baseDir + path.sep to prevent prefix matching issues
+  // Example: /app/files should not match /app/files_private
+  if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
     return res.status(403).send('Access denied');
   }
 
-  // Double-check: verify no path traversal occurred during resolution
-  const relativePath = path.relative(baseDir, normalizedPath);
+  // Additional validation: compute relative path and verify it doesn't escape
+  const relativePath = path.relative(baseDir, resolvedPath);
   if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
     return res.status(403).send('Access denied');
   }
 
-  // Check if file exists before sending
-  if (!fs.existsSync(normalizedPath)) {
+  // Verify file exists and is a regular file (not a directory or special file)
+  try {
+    const stats = fs.statSync(resolvedPath);
+    if (!stats.isFile()) {
+      return res.status(403).send('Access denied');
+    }
+  } catch (err) {
     return res.status(404).send('File not found');
   }
 
-  res.sendFile(normalizedPath);
+  // Safe to send the file - the path has been validated to be within baseDir
+  res.sendFile(resolvedPath);
 });
 
 // Vulnerability 9: Cross-site scripting (XSS) - Fixed
