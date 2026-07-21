@@ -96,12 +96,16 @@ app.get('/ping', (req, res) => {
   });
 });
 
-// Vulnerability 5: Insecure deserialization
+// Vulnerability 5: Insecure deserialization - Fixed
 app.post('/deserialize', (req, res) => {
   const userInput = req.body.data;
-  // Insecure deserialization vulnerability
-  const deserializedData = serialize.unserialize(userInput);
-  res.send('Data processed');
+  // Replaced insecure node-serialize with safe JSON.parse()
+  try {
+    const deserializedData = JSON.parse(userInput);
+    res.send('Data processed');
+  } catch (error) {
+    res.status(400).send('Invalid JSON data');
+  }
 });
 
 // Vulnerability 6: Weak cryptography
