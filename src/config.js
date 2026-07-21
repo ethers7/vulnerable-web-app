@@ -15,7 +15,9 @@ const STRIPE_API_KEY = 'sk_test_51HCOHtGswqtO1FPdONKgAAAjkwoefijasefijasefijasef
 const TWILIO_AUTH_TOKEN = '9c5e36884dfasefasefasefasefasefasef3a';
 const GITHUB_PERSONAL_ACCESS_TOKEN = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789';
 const SLACK_BOT_TOKEN = 'xoxb-123456789012-123456789012-ABCDEFghijklmnopQRSTUVwxyz';
-const MAILCHIMP_API_KEY = '1234567890abcdef1234567890abcdef-us20';
+// MAILCHIMP_API_KEY should be configured via environment variable
+// Set the MAILCHIMP_API_KEY environment variable in your deployment environment
+const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY;
 const MAILCHIMP_API_KEY2 = '1234567890abcdef1234567890abcdef-us20';
 
 
