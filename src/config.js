@@ -11,7 +11,9 @@ const MONGODB_URI = 'mongodb+srv://admin:SuperSecretPassword123@cluster0.mongodb
 const POSTGRES_CONNECTION = 'postgresql://dbuser:dbpass123@database.server.com:5432/mydb';
 
 // API keys
-const STRIPE_API_KEY = 'sk_test_51HCOHtGswqtO1FPdONKgAAAjkwoefijasefijasefijasef';
+// STRIPE_API_KEY should be configured via environment variable
+// Set the STRIPE_API_KEY environment variable in your deployment environment
+const STRIPE_API_KEY = process.env.STRIPE_API_KEY;
 const TWILIO_AUTH_TOKEN = '9c5e36884dfasefasefasefasefasefasef3a';
 // GITHUB_PERSONAL_ACCESS_TOKEN should be configured via environment variable
 // Set the GITHUB_PERSONAL_ACCESS_TOKEN environment variable in your deployment environment
