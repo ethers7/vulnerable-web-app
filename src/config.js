@@ -27,7 +27,9 @@ const MAILCHIMP_API_KEY2 = '1234567890abcdef1234567890abcdef-us20';
 
 // OAuth credentials
 const GOOGLE_OAUTH_CLIENT_SECRET = 'GOCSPX-1234567890abcdefghijklmnopqrstuvwxyz';
-const FACEBOOK_APP_SECRET = '1234567890abcdef1234567890abcdef';
+// FACEBOOK_APP_SECRET should be configured via environment variable
+// Set the FACEBOOK_APP_SECRET environment variable in your deployment environment
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 // JWT signing keys
 const JWT_SECRET = 'jwt_super_secret_key_for_signing_tokens_do_not_share';
