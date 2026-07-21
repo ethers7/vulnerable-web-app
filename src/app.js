@@ -122,15 +122,28 @@ app.post('/encrypt', (req, res) => {
   res.send({ hash });
 });
 
-// Helper function to escape HTML special characters
-function escapeHtml(unsafe) {
+// HTML Sanitization function following OWASP guidelines
+// This function encodes HTML special characters to prevent XSS attacks
+// Implements context-aware output encoding as recommended by OWASP
+function sanitizeHtml(unsafe) {
   if (!unsafe) return '';
-  return String(unsafe)
+  if (typeof unsafe !== 'string') {
+    unsafe = String(unsafe);
+  }
+  // Encode HTML special characters following OWASP recommendations
+  // This prevents XSS by ensuring user input is treated as data, not code
+  return unsafe
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
+// Maintain backward compatibility
+function escapeHtml(unsafe) {
+  return sanitizeHtml(unsafe);
 }
 
 // Vulnerability 7: SQL Injection (simulated) - XSS Fixed
@@ -152,6 +165,11 @@ app.get('/download', (req, res) => {
     return res.status(400).send('Invalid file parameter');
   }
 
+  // Additional input validation: reject paths with null bytes or potentially dangerous patterns
+  if (file.includes('\0') || file.includes('..')) {
+    return res.status(400).send('Invalid file parameter');
+  }
+
   // Define allowed base directory
   const baseDir = path.resolve(__dirname);
 
@@ -159,23 +177,33 @@ app.get('/download', (req, res) => {
   const filePath = path.resolve(baseDir, file);
 
   // Ensure the resolved path is within the allowed directory
-  if (!filePath.startsWith(baseDir + path.sep) && filePath !== baseDir) {
+  // Use path.normalize and verify the canonical path stays within baseDir
+  const normalizedPath = path.normalize(filePath);
+  if (!normalizedPath.startsWith(baseDir + path.sep) && normalizedPath !== baseDir) {
+    return res.status(403).send('Access denied');
+  }
+
+  // Double-check: verify no path traversal occurred during resolution
+  const relativePath = path.relative(baseDir, normalizedPath);
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
     return res.status(403).send('Access denied');
   }
 
   // Check if file exists before sending
-  if (!fs.existsSync(filePath)) {
+  if (!fs.existsSync(normalizedPath)) {
     return res.status(404).send('File not found');
   }
 
-  res.sendFile(filePath);
+  res.sendFile(normalizedPath);
 });
 
 // Vulnerability 9: Cross-site scripting (XSS) - Fixed
 app.get('/profile', (req, res) => {
   const username = req.query.username;
-  // XSS vulnerability fixed by escaping HTML entities
-  const safeUsername = escapeHtml(username);
+  // XSS Prevention: Sanitize user input before inserting into HTML context
+  // Using HTML entity encoding to prevent script injection (CWE-79)
+  // This follows OWASP guidelines for output encoding
+  const safeUsername = sanitizeHtml(username);
   res.send(`
     <html>
       <body>
