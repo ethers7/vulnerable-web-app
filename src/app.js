@@ -41,14 +41,33 @@ app.get('/ping', (req, res) => {
     return res.status(400).send('Invalid host parameter');
   }
 
-  // Allowlist validation: only allow valid hostnames and IP addresses
-  const validHostPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$|^(\d{1,3}\.){3}\d{1,3}$/;
+  // Strict length check to prevent abuse
+  if (host.length > 253) {
+    return res.status(400).send('Host parameter too long');
+  }
 
-  if (!validHostPattern.test(host)) {
+  // Allowlist validation: only allow valid hostnames and IP addresses
+  // Hostname pattern: alphanumeric, hyphens, dots, max 253 chars total
+  const hostnamePattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+  // IPv4 pattern: validate each octet is 0-255
+  const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+
+  let isValid = false;
+  if (hostnamePattern.test(host)) {
+    isValid = true;
+  } else if (ipv4Pattern.test(host)) {
+    // Validate each octet is in range 0-255
+    const octets = host.split('.').map(Number);
+    isValid = octets.every(octet => octet >= 0 && octet <= 255);
+  }
+
+  if (!isValid) {
     return res.status(400).send('Invalid host format');
   }
 
   // Use execFile instead of exec to avoid shell injection
+  // execFile does not spawn a shell, preventing command injection
   execFile('ping', ['-c', '4', host], (error, stdout, stderr) => {
     if (error) {
       return res.status(500).send('Ping failed');

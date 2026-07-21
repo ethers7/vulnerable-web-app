@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { exec } = require('child_process');
 const crypto = require('crypto');
 
 // Vulnerability 11: Insecure random number generation
