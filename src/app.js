@@ -92,30 +92,64 @@ app.post('/encrypt', (req, res) => {
   res.send({ hash });
 });
 
-// Vulnerability 7: SQL Injection (simulated)
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Vulnerability 7: SQL Injection (simulated) - XSS Fixed
 app.get('/search', (req, res) => {
   const query = req.query.q;
   // Simulating SQL injection vulnerability
   const sqlQuery = `SELECT * FROM products WHERE name LIKE '%${query}%'`;
-  res.send(`Query executed: ${sqlQuery}`);
+  // Escape HTML to prevent XSS when displaying user input
+  const safeSqlQuery = escapeHtml(sqlQuery);
+  res.send(`Query executed: ${safeSqlQuery}`);
 });
 
-// Vulnerability 8: Path traversal
+// Vulnerability 8: Path traversal - Fixed
 app.get('/download', (req, res) => {
   const file = req.query.file;
-  // Path traversal vulnerability
-  const filePath = path.join(__dirname, file);
+
+  // Validate input
+  if (!file || typeof file !== 'string') {
+    return res.status(400).send('Invalid file parameter');
+  }
+
+  // Define allowed base directory
+  const baseDir = path.resolve(__dirname);
+
+  // Canonicalize the requested file path
+  const filePath = path.resolve(baseDir, file);
+
+  // Ensure the resolved path is within the allowed directory
+  if (!filePath.startsWith(baseDir + path.sep) && filePath !== baseDir) {
+    return res.status(403).send('Access denied');
+  }
+
+  // Check if file exists before sending
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File not found');
+  }
+
   res.sendFile(filePath);
 });
 
-// Vulnerability 9: Cross-site scripting (XSS)
+// Vulnerability 9: Cross-site scripting (XSS) - Fixed
 app.get('/profile', (req, res) => {
   const username = req.query.username;
-  // XSS vulnerability
+  // XSS vulnerability fixed by escaping HTML entities
+  const safeUsername = escapeHtml(username);
   res.send(`
     <html>
       <body>
-        <h1>Welcome, ${username}!</h1>
+        <h1>Welcome, ${safeUsername}!</h1>
       </body>
     </html>
   `);
