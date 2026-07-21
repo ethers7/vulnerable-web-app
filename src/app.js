@@ -7,6 +7,8 @@ const { execFile } = require('child_process');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const minimist = require('minimist');
+const csrf = require('csurf');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = 3000;
@@ -14,6 +16,10 @@ const port = 3000;
 // Vulnerability 1: Insecure parsing of user input
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// CSRF Protection - Fixed
+app.use(cookieParser());
+app.use(csrf({ cookie: true }));
 
 // Vulnerability 2: Hardcoded credentials
 const dbUser = 'admin';
