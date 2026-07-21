@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const serialize = require('node-serialize');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const minimist = require('minimist');
@@ -32,11 +32,27 @@ app.get('/users/:id', (req, res) => {
   });
 });
 
-// Vulnerability 4: Command injection
+// Vulnerability 4: Command injection - Fixed
 app.get('/ping', (req, res) => {
   const host = req.query.host;
-  // Command injection vulnerability
-  exec(`ping -c 4 ${host}`, (error, stdout, stderr) => {
+
+  // Validate host input to prevent command injection
+  if (!host || typeof host !== 'string') {
+    return res.status(400).send('Invalid host parameter');
+  }
+
+  // Allowlist validation: only allow valid hostnames and IP addresses
+  const validHostPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$|^(\d{1,3}\.){3}\d{1,3}$/;
+
+  if (!validHostPattern.test(host)) {
+    return res.status(400).send('Invalid host format');
+  }
+
+  // Use execFile instead of exec to avoid shell injection
+  execFile('ping', ['-c', '4', host], (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).send('Ping failed');
+    }
     res.send(stdout);
   });
 });
