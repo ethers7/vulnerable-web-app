@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { exec } = require('child_process');
 const crypto = require('crypto');
 
 // Vulnerability 11: Insecure random number generation
@@ -31,14 +30,36 @@ function encryptData(data) {
   return encrypted.toString('hex');
 }
 
-// Vulnerability 15: Prototype pollution
+// Vulnerability 15: Prototype pollution - Fixed
 function merge(target, source) {
+  // Validate that source is an object
+  if (!source || typeof source !== 'object') {
+    return target;
+  }
+
   for (let key in source) {
-    if (typeof source[key] === 'object') {
-      if (!target[key]) target[key] = {};
-      merge(target[key], source[key]);
+    // Prevent prototype pollution by checking for dangerous keys
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue;
+    }
+
+    // Only process own properties using safe hasOwnProperty check
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      continue;
+    }
+
+    // Safe property access after validation
+    const sourceValue = source[key];
+
+    if (typeof sourceValue === 'object' && sourceValue !== null) {
+      // Ensure target property exists and is an object
+      const targetValue = Object.prototype.hasOwnProperty.call(target, key) ? target[key] : undefined;
+      if (!targetValue || typeof targetValue !== 'object') {
+        target[key] = {};
+      }
+      merge(target[key], sourceValue);
     } else {
-      target[key] = source[key];
+      target[key] = sourceValue;
     }
   }
   return target;

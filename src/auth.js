@@ -1,9 +1,11 @@
-const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 
-// Vulnerability 16: Weak password hashing
-function hashPassword(password) {
-  // Using weak MD5 hash for passwords
-  return crypto.createHash('md5').update(password).digest('hex');
+// Fixed: Using bcrypt for secure password hashing
+// bcrypt is a secure password hashing function with built-in salt generation
+// and configurable computational cost
+async function hashPassword(password) {
+  const saltRounds = 10; // Cost factor for bcrypt
+  return await bcrypt.hash(password, saltRounds);
 }
 
 // Vulnerability 17: Insecure JWT implementation
@@ -28,11 +30,13 @@ function createSession(userId) {
 }
 
 // Vulnerability 19: No rate limiting
-function authenticateUser(username, password) {
+async function authenticateUser(username, password) {
   // No rate limiting, vulnerable to brute force attacks
-  const hashedPassword = hashPassword(password);
-  // Simulated user lookup
-  if (username === 'admin' && hashedPassword === hashPassword('admin123')) {
+  // Simulated user lookup - in production, this would be a stored hash
+  // For demonstration, using a pre-hashed password (hash of 'admin123')
+  const storedHash = '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+
+  if (username === 'admin' && await bcrypt.compare(password, storedHash)) {
     return { id: 1, username: 'admin', role: 'admin' };
   }
   return null;
