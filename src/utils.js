@@ -30,10 +30,20 @@ function encryptData(data) {
   return encrypted.toString('hex');
 }
 
-// Vulnerability 15: Prototype pollution
+// Vulnerability 15: Prototype pollution - Fixed
 function merge(target, source) {
   for (let key in source) {
-    if (typeof source[key] === 'object') {
+    // Prevent prototype pollution by checking for __proto__, constructor, and prototype
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue;
+    }
+
+    // Only process own properties
+    if (!source.hasOwnProperty(key)) {
+      continue;
+    }
+
+    if (typeof source[key] === 'object' && source[key] !== null) {
       if (!target[key]) target[key] = {};
       merge(target[key], source[key]);
     } else {
