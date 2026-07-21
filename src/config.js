@@ -22,7 +22,6 @@ const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 // MAILCHIMP_API_KEY should be configured via environment variable
 // Set the MAILCHIMP_API_KEY environment variable in your deployment environment
 const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY;
-const MAILCHIMP_API_KEY2 = '1234567890abcdef1234567890abcdef-us20';
 
 
 // OAuth credentials
@@ -33,33 +32,11 @@ const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 
 // JWT signing keys
 const JWT_SECRET = 'jwt_super_secret_key_for_signing_tokens_do_not_share';
-const PRIVATE_KEY = `-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA04up8hoqzS1+APIB0RhjXyObwHQnOzhAk5Bd7mhkSbPkyhP1
-xLEMg1u4XNRQ4h4qrU5XGbm4ahvOO4n9kdkvYOQT8k0UOJ0N9Q8/PNovUPVwi5JJ
-SwS0+YjAkh4YdDP8EwQPE4jxorx5m0eiKGLYFiZuD9FfofakXL8kUYQXIWte3CgF
-WeZxxzLBWekJYOD/5tJKESZgqjBSVwPgMpbNPDUPPTAhWBpgZcTHnQQnkNQJt73Z
-8erRtxKYSRz4bQh85MeKmq4h7D1pQSF8qHGjkGRQbt6hgY8JLHXKnGLIpPUdyMUB
-LmCArXqMdQoqzSFodlCRm4r6mRl/HJPBictX5QIDAQABAoIBAB6kF273P7l+95n5
-VS+H2lY91kVvougW3wbD72zsg+2KrjC83fMrS5P9GVlsH8jPQHqp/zLgWJ1/Bjgz
-pIqEww9vRh1MsKkQUr/pBKmrPzVxZkWOSdnRrYpYDAt9z0V0kTfFDFPYJjZ2DJp+
-IF1HLl/wilytXZZp0JqFQUlLMzK+hgiw9OwlOmK/o8coZ5SQRrkXcZR6AWXEJwRB
-Zl6hYCZDbgkpzBQ+88Mn4gE1oVUcJBSrEG6FzL9gOjO8fNaRaGf5jfYyFUjzjUPI
-JFzxoTK5xj7O8UvZQ8gVokIFuKcDXW/0k3VnUh6yJWgvMQRXHiXVGHY0LTHYxIVj
-zBBIh4ECgYEA9/XpNsMtRLoMLqb01zvylgLO1cKNkAmoVFhAnh9nH1n3v55Vt48h
-K9NkHUPbVwSIVdQxDzQy+YXw9IEjieVCBOPHTxRHfX7GhvlFBPp+84WId4IkybDc
-ExIGjK5EsJQQKddLX2ZqhzvzB/zKEwgQRbj0+lBl9aidWwZ5WBKbj1UCgYEA2lCP
-aG2V8YZwM5K4+W7q70CAn4TfPf7aZTiGGCzizNHhYFgXvNdRnE6wFHPAczWGUqTJ
-iamKgJgM59JR12X9GXWNu6xrXVaVU8lVtDyKMJzDB8+5jh6FzLDLgzXTJRzCgHSi
-08VbNwJZAGJQ5DfBYr4YRJEQc5jLOzMuXNqyebECgYEA0aIVql9A1q7bIJqYQxDB
-+2xaPcSgDNK9B6BcVLQHVG5c87zHnYi5TCGIiUgK6Bm9XNwZ6mRaULFdZVVhpMlJ
-dEXOTh08D1JLyRbKyNcaP4HWcpQ9ZK6YwHYU/0UHqDENF7kGCOAO8R4CfcFBCHyx
-ZBQ02iO9uCJVQXEyDqJ4SbUCgYEAqghfKtGZgX1Nkj5+S+wC+NN/XNvukDkej4FM
-7tKQ/UVTxTABnbr3jXCX01YUd0eo3SrZqYN5T7udCYrAd4ZJwQqZSY5BX5/Ys7P5
-fTU+zZpJ/Xj8qagHwzTQDGnbkYI9UvGxiG9U1yVCZ5W0Qsn5EfIUJzQLohL3hSl8
-SnZIcTECgYAydVb0THOx7rWNkNUGggc/++why61M6kYfGJW8C9HnXTJNsu6fG0xJ
-O5PWwJA7NBAf9aNx2N8c8G5JUPzLK8KqNatFMXnNNDl8/NCIHGUxS1kUQWKdJWTY
-aypLJ9nJocQMJy9Z2mW4N6MRl3X0Ei+7TXPdkgMqW5Cxpohx6v2Ihw==
------END RSA PRIVATE KEY-----`;
+// PRIVATE_KEY should be configured via environment variable or loaded from a secure file
+// Set the PRIVATE_KEY environment variable with your RSA private key in your deployment environment
+// Alternatively, use PRIVATE_KEY_PATH to specify a path to a file containing the private key
+// Example: PRIVATE_KEY_PATH=/path/to/secure/private-key.pem
+const PRIVATE_KEY = process.env.PRIVATE_KEY || (process.env.PRIVATE_KEY_PATH ? require('fs').readFileSync(process.env.PRIVATE_KEY_PATH, 'utf8') : null);
 
 // Encryption keys
 const ENCRYPTION_KEY = '12345678901234567890123456789012'; // 32-byte AES key
