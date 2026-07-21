@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
-const serialize = require('node-serialize');
 const { execFile } = require('child_process');
 const crypto = require('crypto');
 const mongoose = require('mongoose');

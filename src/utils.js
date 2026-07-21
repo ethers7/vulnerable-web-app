@@ -32,22 +32,34 @@ function encryptData(data) {
 
 // Vulnerability 15: Prototype pollution - Fixed
 function merge(target, source) {
+  // Validate that source is an object
+  if (!source || typeof source !== 'object') {
+    return target;
+  }
+
   for (let key in source) {
-    // Prevent prototype pollution by checking for __proto__, constructor, and prototype
+    // Prevent prototype pollution by checking for dangerous keys
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
       continue;
     }
 
-    // Only process own properties
-    if (!source.hasOwnProperty(key)) {
+    // Only process own properties using safe hasOwnProperty check
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
       continue;
     }
 
-    if (typeof source[key] === 'object' && source[key] !== null) {
-      if (!target[key]) target[key] = {};
-      merge(target[key], source[key]);
+    // Safe property access after validation
+    const sourceValue = source[key];
+
+    if (typeof sourceValue === 'object' && sourceValue !== null) {
+      // Ensure target property exists and is an object
+      const targetValue = Object.prototype.hasOwnProperty.call(target, key) ? target[key] : undefined;
+      if (!targetValue || typeof targetValue !== 'object') {
+        target[key] = {};
+      }
+      merge(target[key], sourceValue);
     } else {
-      target[key] = source[key];
+      target[key] = sourceValue;
     }
   }
   return target;
