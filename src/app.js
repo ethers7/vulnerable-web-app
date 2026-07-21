@@ -20,11 +20,31 @@ const dbUser = 'admin';
 const dbPassword = 'super_secret_password123';
 const dbConnection = `mongodb://localhost:27017/vulnerable_db`;
 
-// Vulnerability 3: Insecure direct object references
+// Vulnerability 3: Insecure direct object references - Path Traversal Fixed
 app.get('/users/:id', (req, res) => {
   const userId = req.params.id;
+
+  // Validate user ID to prevent path traversal
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).send('Invalid user ID');
+  }
+
+  // Only allow alphanumeric user IDs (no path separators)
+  if (!/^[a-zA-Z0-9_-]+$/.test(userId)) {
+    return res.status(400).send('Invalid user ID format');
+  }
+
+  // Define base directory and resolve path
+  const baseDir = path.resolve(__dirname, './data/users');
+  const filePath = path.resolve(baseDir, `${userId}.json`);
+
+  // Ensure the resolved path is within the allowed directory
+  if (!filePath.startsWith(baseDir + path.sep)) {
+    return res.status(403).send('Access denied');
+  }
+
   // No authorization check, anyone can access any user's data
-  fs.readFile(`./data/users/${userId}.json`, 'utf8', (err, data) => {
+  fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) {
       return res.status(404).send('User not found');
     }
