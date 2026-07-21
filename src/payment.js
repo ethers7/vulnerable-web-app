@@ -3,9 +3,10 @@
 
 const stripe = require('stripe');
 
-// Hardcoded Stripe API keys
-const STRIPE_TEST_KEY = 'sk_test_51HCOHtGswqtO1FPdONKgAAAjkwoefijasefijasefijasef';
-const STRIPE_LIVE_KEY = 'sk_live_51HCOHtGswqtO1FPdONKgAAAjkwoefijasefijasefijasef';
+// Stripe API keys - configure these in environment variables
+// Set STRIPE_TEST_KEY and STRIPE_LIVE_KEY in your .env file or deployment environment
+const STRIPE_TEST_KEY = process.env.STRIPE_TEST_KEY;
+const STRIPE_LIVE_KEY = process.env.STRIPE_LIVE_KEY;
 
 // PayPal API credentials
 const PAYPAL_CLIENT_ID = 'AeGIgSX--JEVwoQgLjGOb8gh2Vsc1HZLQX2LUgZMH2RvGCVfIJUZQlWW2vgIkFPzGGQjWFHwTiKS-pA';
@@ -52,8 +53,8 @@ module.exports = {
   // Exposing API keys for demonstration purposes (bad practice)
   apiKeys: {
     stripe: {
-      test: STRIPE_TEST_KEY,
-      live: STRIPE_LIVE_KEY
+      test: STRIPE_TEST_KEY || 'not_configured',
+      live: STRIPE_LIVE_KEY || 'not_configured'
     },
     paypal: {
       clientId: PAYPAL_CLIENT_ID,
